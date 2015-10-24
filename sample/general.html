@@ -1,0 +1,133 @@
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title></title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <style>
+        .hiden {
+            display: none;
+        }
+
+        .progress {
+            margin-bottom: 0px
+        }
+
+        .progress_container {
+            width:  500px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-height: 28px;
+        }
+
+        .progress_container .item  {
+            padding: 4px;
+            display: flex;
+            display: -webkit-box;
+        }
+
+        .progress_container .filename {
+            flex:1;
+            -webkit-box-flex: 1;
+        }
+
+        .progress_container .progress_area {
+            width: 200px;
+            padding: 0 10px;
+        }
+
+        .progress_container .cancel_area {
+            width:71px;
+        }
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+    <h1>Demo</h1>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h3>Upload </h3>
+            <button type='button' name='upload' id='upload' class='btn btn-default'>Upload</button>
+            <button type='button' name='upload' id='upload_image' class='btn btn-default'>Upload Image</button>
+            <span class='status'></span>
+            <br><br>
+            <div class='progress_container'>
+                <div class='item'>
+                    <div class='filename'>filename</div>
+                    <div class='progress_area'>
+                        <div class='progress'>
+                            <div class='progress-bar'>
+                                <span class='progress-value'></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='cancel_area'><a class='cancel'>Cancel</a></div>
+                </div>
+            </div>
+        </div>
+        <div class='col-xs-6'>
+            <h3>Sever Response</h3>
+            <ul class='response'>
+
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script src='../js/asyncUpload.js'></script>
+<script>
+'use strict';
+
+var FileUpload = function() {
+    var container = document.querySelector('.progress_container');
+    var template = container.querySelector('.item').cloneNode(true);
+    container.innerHTML = '';
+    return function () {
+        var tmp = template.cloneNode(true);
+        var check = function(file) {
+            var that = this;
+            tmp.querySelector('.filename').innerHTML = file.name;
+            tmp.querySelector('.cancel').onclick = function() {
+                that.xhr.abort();
+            };
+            container.appendChild(tmp);
+            return true;
+        };
+
+        var progress = function(e) {
+            var percentComplete = parseInt((e.loaded / e.total) * 100);
+            tmp.querySelector('.progress-bar').style.width = percentComplete + '%';
+            tmp.querySelector('.progress-value').innerHTML = percentComplete + '%';
+        };
+
+        var success = function(response) {
+            document.querySelector('.response').innerHTML += '<li>' + response + '</li>';
+        };
+
+        var error = function(e) {
+            console.log(e);
+        };
+
+        return  {
+            check: check,
+            progress: progress,
+            success: success,
+            error: error
+        };
+    };
+};
+
+var fileUpload = new FileUpload();
+var upload = new AsyncUpload('#upload', {
+    url: '../upload_submit.php',
+    multiple: true,
+    FileUpload: fileUpload
+});
+
+var uploadImage = new AsyncUpload('#upload_image', {
+    url: '../upload_submit.php',
+    multiple: true,
+    accept: 'image/*',
+    FileUpload: fileUpload
+});
+</script>
